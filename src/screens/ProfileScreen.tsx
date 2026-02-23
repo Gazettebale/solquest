@@ -18,7 +18,7 @@ const ACHIEVEMENTS = [
 ];
 
 export default function ProfileScreen() {
-  const { savedProjects, currentIndex, resetCards } = useApp();
+  const { savedProjects, currentIndex, resetCards, walletAddress, connectWallet, disconnectWallet } = useApp();
   const reviewed = currentIndex;
   const total = projects.length;
   const seekerCount = savedProjects.filter(p => p.isSeeker).length;
@@ -27,18 +27,33 @@ export default function ProfileScreen() {
 
   const unlockedCount = ACHIEVEMENTS.filter(a => a.check(reviewed, savedProjects.length, seekerCount)).length;
 
+  const shortAddress = walletAddress
+    ? walletAddress.slice(0, 4) + '...' + walletAddress.slice(-4)
+    : null;
+
   return (
     <ScrollView style={styles.container} bounces={false}>
       <Text style={styles.title}>Profile</Text>
 
-      <View style={styles.walletBox}>
-        <Text style={styles.walletEmoji}>🔗</Text>
-        <Text style={styles.walletTitle}>Connect Wallet</Text>
-        <Text style={styles.walletHint}>Link your Solana wallet to claim rewards</Text>
-        <TouchableOpacity style={styles.walletBtn}>
-          <Text style={styles.walletBtnText}>Connect</Text>
-        </TouchableOpacity>
-      </View>
+      {walletAddress ? (
+        <View style={styles.walletConnected}>
+          <Text style={styles.walletConnectedEmoji}>✅</Text>
+          <Text style={styles.walletConnectedTitle}>Wallet Connected</Text>
+          <Text style={styles.walletAddressText}>{shortAddress}</Text>
+          <TouchableOpacity style={styles.disconnectBtn} onPress={disconnectWallet}>
+            <Text style={styles.disconnectBtnText}>Disconnect</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.walletBox}>
+          <Text style={styles.walletEmoji}>🔗</Text>
+          <Text style={styles.walletTitle}>Connect Wallet</Text>
+          <Text style={styles.walletHint}>Link your Solana wallet to claim rewards</Text>
+          <TouchableOpacity style={styles.walletBtn} onPress={connectWallet}>
+            <Text style={styles.walletBtnText}>Connect</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
@@ -174,6 +189,28 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   walletBtnText: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
+  walletConnected: {
+    marginHorizontal: 16,
+    backgroundColor: '#14F19515',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#14F195',
+    marginBottom: 16,
+  },
+  walletConnectedEmoji: { fontSize: 32, marginBottom: 8 },
+  walletConnectedTitle: { color: '#14F195', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  walletAddressText: { color: '#fff', fontSize: 14, marginBottom: 12 },
+  disconnectBtn: {
+    backgroundColor: '#E9456022',
+    borderWidth: 1,
+    borderColor: '#E94560',
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 6,
+  },
+  disconnectBtnText: { color: '#E94560', fontSize: 12, fontWeight: 'bold' },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

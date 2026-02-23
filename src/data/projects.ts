@@ -9,6 +9,7 @@ export interface Project {
   difficulty: 'Easy' | 'Medium' | 'Hard';
   reward: string;
   link: string;
+  dappStoreLink: string | null;
   isSeeker: boolean;
 }
 
@@ -24,6 +25,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Genesis Token, Seeker Season rewards',
     link: 'https://phantom.app',
+    dappStoreLink: 'solanadappstore://details?id=app.phantom',
     isSeeker: true,
   },
   {
@@ -37,6 +39,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Genesis Token, Seed Vault developer',
     link: 'https://solflare.com',
+    dappStoreLink: 'solanadappstore://details?id=com.solanamobile.wallet',
     isSeeker: true,
   },
   {
@@ -50,6 +53,7 @@ export const projects: Project[] = [
     difficulty: 'Medium',
     reward: 'Exchange features',
     link: 'https://backpack.app',
+    dappStoreLink: 'solanadappstore://details?id=org.toshi',
     isSeeker: true,
   },
   {
@@ -63,6 +67,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Airdrop Season 2 (Gold + XP)',
     link: 'https://jup.ag',
+    dappStoreLink: 'solanadappstore://details?id=ag.jup.jupiter.android',
     isSeeker: true,
   },
   {
@@ -76,6 +81,7 @@ export const projects: Project[] = [
     difficulty: 'Medium',
     reward: 'Trading fee rebates, maker rewards',
     link: 'https://drift.trade',
+    dappStoreLink: 'solanadappstore://details?id=trade.drift.app.twa',
     isSeeker: true,
   },
   {
@@ -89,6 +95,7 @@ export const projects: Project[] = [
     difficulty: 'Medium',
     reward: 'Memecoin trading',
     link: 'https://pump.fun',
+    dappStoreLink: 'solanadappstore://details?id=com.batonresearch.pump',
     isSeeker: true,
   },
   {
@@ -102,6 +109,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Staking yields 7-9% APY, MEV rewards',
     link: 'https://jito.network',
+    dappStoreLink: 'solanadappstore://details?id=network.jito.www.twa',
     isSeeker: true,
   },
   {
@@ -115,6 +123,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Lending rewards',
     link: 'https://loopscale.com',
+    dappStoreLink: 'solanadappstore://details?id=com.loopscale.app',
     isSeeker: true,
   },
   {
@@ -128,6 +137,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Cross-chain transfers',
     link: 'https://debridge.finance',
+    dappStoreLink: null,
     isSeeker: true,
   },
   {
@@ -141,6 +151,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Optimized yields',
     link: 'https://ensofi.xyz',
+    dappStoreLink: 'solanadappstore://details?id=xyz.ensofi.app',
     isSeeker: true,
   },
   {
@@ -154,6 +165,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Savings interest',
     link: 'https://save.finance',
+    dappStoreLink: 'solanadappstore://details?id=finance.save.twa',
     isSeeker: true,
   },
   {
@@ -167,6 +179,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Betting rewards',
     link: 'https://dudsdegen.com',
+    dappStoreLink: 'solanadappstore://details?id=app.dubs.twa',
     isSeeker: true,
   },
   {
@@ -180,6 +193,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Token rewards',
     link: 'https://tokenrun.app',
+    dappStoreLink: 'solanadappstore://details?id=com.tokenrun.app',
     isSeeker: true,
   },
   {
@@ -193,6 +207,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Fantasy rewards',
     link: 'https://cryptofantasyleague.com',
+    dappStoreLink: 'solanadappstore://details?id=fun.cfl.www.twa',
     isSeeker: true,
   },
   {
@@ -206,6 +221,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Sleep-to-earn tokens',
     link: 'https://sleepagotchi.com',
+    dappStoreLink: 'solanadappstore://details?id=com.sleepagotchi.soft.app',
     isSeeker: true,
   },
   {
@@ -219,6 +235,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Weekly rewards, missions system',
     link: 'https://mattle.fun',
+    dappStoreLink: 'solanadappstore://details?id=fun.mattle.twa',
     isSeeker: true,
   },
   {
@@ -232,6 +249,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'PvP stakes',
     link: 'https://playsolmates.com',
+    dappStoreLink: 'solanadappstore://details?id=app.playsolmates.game',
     isSeeker: true,
   },
   {
@@ -245,6 +263,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'PvP rewards',
     link: 'https://billardsclash.com',
+    dappStoreLink: 'solanadappstore://details?id=com.astrolab.billiards',
     isSeeker: true,
   },
   {
@@ -258,6 +277,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Puzzle rewards',
     link: 'https://2048.com',
+    dappStoreLink: 'solanadappstore://details?id=com.game.puzzle2048',
     isSeeker: true,
   },
   {
@@ -271,6 +291,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Location-based loots',
     link: 'https://lootgo.io',
+    dappStoreLink: 'solanadappstore://details?id=com.lootgo.app',
     isSeeker: true,
   },
   {
@@ -284,6 +305,7 @@ export const projects: Project[] = [
     difficulty: 'Medium',
     reward: 'ORE token mining rewards',
     link: 'https://ore.supply',
+    dappStoreLink: 'solanadappstore://details?id=supply.ore.app',
     isSeeker: true,
   },
   {
@@ -297,6 +319,7 @@ export const projects: Project[] = [
     difficulty: 'Medium',
     reward: 'Raffle prizes',
     link: 'https://solraffle.com',
+    dappStoreLink: 'solanadappstore://details?id=com.slot.solraffle',
     isSeeker: true,
   },
   {
@@ -310,6 +333,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'ME token: 30% buyback, Lucky Buy',
     link: 'https://magiceden.io',
+    dappStoreLink: 'solanadappstore://details?id=io.magiceden.twa',
     isSeeker: true,
   },
   {
@@ -323,6 +347,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'TNSR token, volume incentives',
     link: 'https://tensor.trade',
+    dappStoreLink: 'solanadappstore://details?id=trade.tensor.www.twa',
     isSeeker: true,
   },
   {
@@ -336,6 +361,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Low fees trading',
     link: 'https://tiexo.com',
+    dappStoreLink: 'solanadappstore://details?id=com.tiexo',
     isSeeker: true,
   },
   {
@@ -349,6 +375,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'AI generation credits',
     link: 'https://candy.ai',
+    dappStoreLink: 'solanadappstore://details?id=io.candy.android.app',
     isSeeker: true,
   },
   {
@@ -362,6 +389,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Merchant discovery',
     link: 'https://nearme.so',
+    dappStoreLink: 'solanadappstore://details?id=com.bluntbrain.NearMe',
     isSeeker: true,
   },
   {
@@ -375,6 +403,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Private transfers',
     link: 'https://privacycash.io',
+    dappStoreLink: 'solanadappstore://details?id=org.privacycash.twa',
     isSeeker: true,
   },
   {
@@ -388,6 +417,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Easy crypto purchase',
     link: 'https://moonpay.com',
+    dappStoreLink: 'solanadappstore://details?id=com.moonpay.commerceapp',
     isSeeker: true,
   },
   {
@@ -401,6 +431,7 @@ export const projects: Project[] = [
     difficulty: 'Medium',
     reward: 'USDC weekly, 2x boost on Seeker',
     link: 'https://ur.io',
+    dappStoreLink: 'solanadappstore://details?id=com.bringyour.network',
     isSeeker: true,
   },
   {
@@ -414,6 +445,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Global connectivity',
     link: 'https://encryptsim.com',
+    dappStoreLink: 'solanadappstore://details?id=com.encryptsim.app',
     isSeeker: true,
   },
   {
@@ -427,6 +459,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Free .sol domain',
     link: 'https://sns.id',
+    dappStoreLink: 'solanadappstore://details?id=id.sns.www.twa',
     isSeeker: true,
   },
   {
@@ -440,6 +473,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Challenge rewards',
     link: 'https://daremarket.com',
+    dappStoreLink: 'solanadappstore://details?id=market.dare.app.twa',
     isSeeker: true,
   },
   {
@@ -453,6 +487,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'MOON tokens per step',
     link: 'https://moonwalk.fitness',
+    dappStoreLink: 'solanadappstore://details?id=fit.moonwalk.mobile.app',
     isSeeker: true,
   },
   {
@@ -466,6 +501,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Travel bookings with crypto',
     link: 'https://nomadz.com',
+    dappStoreLink: 'solanadappstore://details?id=xyz.nomadz.app',
     isSeeker: true,
   },
 ];

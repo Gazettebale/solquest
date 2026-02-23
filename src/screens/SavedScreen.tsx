@@ -153,7 +153,7 @@ export default function SavedScreen() {
                 <View style={styles.modalActions}>
                   <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: selectedProject.color + '22', borderColor: selectedProject.color }]}
-                    onPress={() => Linking.openURL(selectedProject.link)}
+                    onPress={() => Linking.openURL(selectedProject.dappStoreLink || selectedProject.link)}
                   >
                     <Text style={[styles.actionBtnText, { color: selectedProject.color }]}>
                       {selectedProject.isSeeker ? 'Open App' : 'Visit Website'}
@@ -163,7 +163,7 @@ export default function SavedScreen() {
                   {selectedProject.isSeeker && (
                     <TouchableOpacity
                       style={styles.reviewBtn}
-                      onPress={() => Linking.openURL(selectedProject.link)}
+                      onPress={() => Linking.openURL(selectedProject.dappStoreLink || selectedProject.link)}
                     >
                       <Text style={styles.reviewBtnText}>Leave a Review</Text>
                     </TouchableOpacity>
