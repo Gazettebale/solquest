@@ -39,7 +39,7 @@ export const projects: Project[] = [
     difficulty: 'Easy',
     reward: 'Genesis Token, Seed Vault developer',
     link: 'https://solflare.com',
-    dappStoreLink: 'solanadappstore://details?id=com.solanamobile.wallet',
+    dappStoreLink: 'solanadappstore://details?id=com.solflare.mobile',
     isSeeker: true,
   },
   {
@@ -53,7 +53,7 @@ export const projects: Project[] = [
     difficulty: 'Medium',
     reward: 'Exchange features',
     link: 'https://backpack.app',
-    dappStoreLink: 'solanadappstore://details?id=org.toshi',
+    dappStoreLink: 'solanadappstore://details?id=app.backpack.mobile.standalone',
     isSeeker: true,
   },
   {
@@ -105,7 +105,7 @@ export const projects: Project[] = [
     category: 'Liquid Staking',
     icon: '🏦',
     logo: require('../../assets/logos/jito.png'),
-    color: '#222222',
+    color: '#00C2A8',
     difficulty: 'Easy',
     reward: 'Staking yields 7-9% APY, MEV rewards',
     link: 'https://jito.network',
