@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useApp } from '../context/AppContext';
 
 const { width } = Dimensions.get('window');
 const GAME_WIDTH = width - 32;
@@ -12,10 +13,12 @@ const TICK = 20;
 const CHARACTERS = ['🚀', '🦊', '🐸', '🦁', '🐉', '🦅', '🐺', '🦈', '🔥', '💎', '🛸', '🐒'];
 
 export default function MiniGame() {
+  const { updateGameScore, gameHighScore } = useApp();
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(gameHighScore);
   const [playerBottom, setPlayerBottom] = useState(0);
   const [obstacleLeft, setObstacleLeft] = useState(GAME_WIDTH);
   const [character, setCharacter] = useState('🚀');
@@ -28,6 +31,13 @@ export default function MiniGame() {
   const loopRef = useRef<any>(null);
   const isPlayingRef = useRef(false);
   const tapCountRef = useRef(0);
+
+  // Keep highScore in sync with context
+  useEffect(() => {
+    if (gameHighScore > highScore) {
+      setHighScore(gameHighScore);
+    }
+  }, [gameHighScore]);
 
   const leaderboard = [
     { name: 'SolWhale', score: 142 },
@@ -42,8 +52,11 @@ export default function MiniGame() {
     if (loopRef.current) clearInterval(loopRef.current);
     setIsPlaying(false);
     setGameOver(true);
-    if (scoreRef.current > highScore) setHighScore(scoreRef.current);
-  }, [highScore]);
+    const finalScore = scoreRef.current;
+    if (finalScore > highScore) setHighScore(finalScore);
+    // Send score to AppContext for quest tracking
+    updateGameScore(finalScore);
+  }, [highScore, updateGameScore]);
 
   const handleTap = () => {
     if (!isPlayingRef.current) return;

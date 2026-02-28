@@ -1,80 +1,102 @@
-# ⚡ SolQuest - Discover Solana, One Swipe at a Time
+# SolQuest 🧭
 
-> Your gateway to the Solana ecosystem. Discover dApps, track your progress, and grow as a Solana user.
+**Discover. Explore. Earn.**
 
-![Hackathon](https://img.shields.io/badge/Hackathon-Radiants%20DAO%20Mobile-orange)
-![Platform](https://img.shields.io/badge/Platform-Solana%20Mobile-purple)
-![Powered by](https://img.shields.io/badge/Powered%20by-SKR-green)
+SolQuest is a gamified discovery app for the Solana ecosystem, built for the **Solana Seeker** device. Swipe through curated Solana dApps, complete daily quests, earn XP, and engage with the Solana blockchain — all from your mobile.
 
----
+Built for the **MONOLITH Hackathon** 🏗️
 
-## 🎯 The Problem
+## Features
 
-New users trying to explore Solana face:
-- **Information overload** — 165+ dApps on the Seeker dApp Store alone
-- **Confusing onboarding** — No clear path to get started
-- **No guidance** — Which apps to try first? What rewards are available?
+### 🧭 Swipe Discovery
+Browse 35+ curated Solana projects with a Tinder-style card interface. Save projects you like, skip the rest. Each project includes category tags, difficulty level, and direct links.
 
-## 💡 The Solution
+### ☀️ GM Streak (On-Chain)
+Say "GM" to Solana every day by sending 5 SKR tokens to the treasury. Maintain daily streaks for escalating XP bonuses. Fully on-chain via SPL token transfer.
 
-**SolQuest** is a mobile-first discovery app built for Solana Seeker that helps users:
-- **Swipe** through curated Solana projects and Seeker dApp Store apps
-- **Save** the ones they want to explore
-- **Track** their discovery progress
-- **Learn** about DeFi, Staking, NFTs, DePIN, Gaming & more
+### ⚔️ Quest System
+Complete daily, weekly, and special quests to earn XP and level up:
 
-Think of it as **Tinder for Solana dApps** — swipe right to explore, left to skip.
+- **Daily Quests**: GM Check-in, Swipe 5 projects, Score 30+ in Solana Runner, Daily Swap, Daily SKR Stake
+- **Weekly Quests**: 7-Day GM Streak, Save 15 projects, Score 200+ in Runner, 7-day Swap/Stake streaks, Stake 140+ SKR
+- **Special Quests**: Connect Wallet, Review all projects, Rate on dApp Store, Stake 2 SOL on validator
 
-## 📱 Features
+Quests auto-detect completion when possible (swipes, game scores, wallet connection). Swap and stake quests use an honor system for now.
 
-- 🃏 **Swipe Cards** — Browse 28+ curated projects with Skip/Explore buttons
-- 📱 **Seeker dApp Store Integration** — Highlights apps available on the Solana dApp Store
-- 📌 **Saved Projects** — Keep track of projects you want to try
-- 📊 **Profile & Stats** — See your discovery progress, categories explored
-- 🔗 **Wallet Connect** — Seeker wallet integration (coming soon)
-- 💰 **SKR Integration** — Premium guides unlockable with SKR (coming soon)
+### 🏃 Solana Runner
+Built-in mini-game with jump, double-jump, and slam mechanics. Compete against a leaderboard and complete game-related quests.
 
-## 🛠️ Tech Stack
+### 👤 Profile & Achievements
+Track your discovery progress, categories explored, and unlock 12 achievements from Common to Mythic rarity.
 
-- **React Native** (Expo) — Cross-platform mobile framework
-- **TypeScript** — Type-safe code
-- **React Navigation** — Bottom tab navigation
-- **React Context** — Global state management
-- **Solana Mobile Stack** — Wallet Adapter (coming soon)
+## Tech Stack
 
-## 🚀 Getting Started
+- **React Native** with Expo (SDK 54)
+- **TypeScript**
+- **Solana Mobile Wallet Adapter** (Phantom, Solflare, Backpack)
+- **SPL Token** transactions (manual instruction building, no BigInt dependency)
+- **Helius RPC** for reliable mainnet connectivity
+- **AsyncStorage** for local state persistence
+
+## Architecture Highlights
+
+- **Base64 wallet address decoding**: Handles Phantom/Solflare returning addresses in base64 instead of base58 on Seeker devices
+- **Pre-transact blockhash fetching**: Network calls are made before opening the wallet interface to avoid mobile networking issues during wallet sessions
+- **Manual fetch for RPC**: Uses raw `fetch()` instead of `Connection` class for reliable mobile RPC communication
+- **Manual SPL transfer instructions**: Built without `@solana/spl-token` to avoid Buffer/BigInt polyfill issues in React Native
+
+## Getting Started
+
 ```bash
-# Clone the repo
-git clone https://github.com/Gazettebale/solana-discovery.git
-cd solana-discovery
-
 # Install dependencies
 npm install
 
-# Start the dev server
-npx expo start
+# Start Expo dev server
+npx expo start --clear
+
+# For Seeker device (requires dev build)
+eas build --profile development --platform android
 ```
 
-Scan the QR code with your Solana Seeker or Expo Go app.
+## Project Structure
 
-## 📅 Roadmap
+```
+src/
+├── context/
+│   └── AppContext.tsx      # Global state, wallet, GM streak, quest tracking
+├── components/
+│   ├── ProjectCard.tsx     # Swipeable project card
+│   └── MiniGame.tsx        # Solana Runner game
+├── screens/
+│   ├── HomeScreen.tsx      # Discovery feed + GM modal
+│   ├── QuestsScreen.tsx    # Quest system with auto-detection
+│   ├── SavedScreen.tsx     # Saved projects list
+│   └── ProfileScreen.tsx   # Profile, stats, achievements
+├── data/
+│   └── projects.ts         # Curated Solana projects database
+└── navigation/
+    └── ...
+```
 
-- [x] Week 1 — Setup, navigation, card system, saved projects, profile
-- [ ] Week 2 — Swipe gestures, animations, UI polish
-- [ ] Week 3 — Wallet connection, guides, quest tracking
-- [ ] Week 4 — SKR integration, premium content
-- [ ] Week 5 — APK build, demo video, submission
+## Roadmap (Post-Hackathon)
 
-## 🏆 Hackathon
+- [ ] **On-chain quest verification**: Replace honor system with blockchain transaction verification for swap/stake quests
+- [ ] **NFT achievement badges**: Mint achievement NFTs on completion
+- [ ] **Social features**: Friends, shared leaderboards, referral system
+- [ ] **Dynamic project feed**: Fetch projects from API instead of static data
+- [ ] **SKR token rewards**: Distribute SKR tokens for quest completion
+- [ ] **Push notifications**: Daily GM reminders and streak alerts
 
-**MONOLITH** by Radiants DAO — 5 week sprint to build a mobile app for the Solana dApp Store.
-- **Prize Pool:** $125k + $10k bonus for best SKR integration
-- **Deadline:** March 9, 2026
+## Token Info
 
-## 👥 Team
+- **SKR Token**: `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3` (6 decimals)
+- **Treasury**: `Hboo3XYUcXQJL8TfRu48Nac28wxagUnxC8q5SdFL2dEY`
+- **GM Cost**: 5 SKR per daily check-in
 
-Built by [@_Gazettebale](https://twitter.com/_Gazettebale)
-
-## 📄 License
+## License
 
 MIT
+
+---
+
+*Built with 💜 for the Solana ecosystem by [@gazettebale](https://github.com/gazettebale)*
