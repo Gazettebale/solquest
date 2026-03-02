@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Modal, TextInput, Alert, Vibration } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../components/QuestToast';
 
 const XP_PER_LEVEL = 800;
 
@@ -56,6 +57,7 @@ export default function QuestsScreen() {
   const [filter, setFilter] = useState<'daily' | 'weekly' | 'special'>('daily');
   const [showStakeModal, setShowStakeModal] = useState(false);
   const [stakeAmount, setStakeAmount] = useState('');
+  const { showToast } = useToast();
 
   // Count how many days the user completed Swipe Session (5+ swipes)
   // For now we track via swipeDaysCount in weekly context
@@ -103,6 +105,9 @@ export default function QuestsScreen() {
       const { completed } = getQuestStatus(quest);
       if (completed && !claimedQuestXP[quest.id]) {
         claimQuestXP(quest.id, quest.xp);
+        // Show toast + haptic feedback
+        showToast({ title: quest.title, xp: quest.xp, icon: quest.icon });
+        Vibration.vibrate(100);
       }
     });
   }, [
@@ -112,12 +117,14 @@ export default function QuestsScreen() {
   ]);
 
   const openSeekerWallet = () => {
-  Linking.openURL('android-app://com.solanamobile.wallet').catch(() => {
-    Linking.openURL('market://details?id=com.solanamobile.wallet').catch(() => {
-      Alert.alert('Wallet', 'Open your Seeker Seed Vault wallet manually.');
+    // Try to open Seeker wallet, fallback to dApp Store
+    Linking.openURL(SEEKER_WALLET_LINK).catch(() => {
+      // Fallback: try opening the Solflare app directly
+      Linking.openURL('solflare://').catch(() => {
+        Alert.alert('Wallet', 'Open your Seeker wallet app to complete this quest.');
+      });
     });
-  });
-};
+  };
 
   const handleQuestPress = (quest: QuestDef) => {
     const { completed } = getQuestStatus(quest);

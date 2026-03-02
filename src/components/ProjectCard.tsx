@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, Image } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, Image, Vibration } from 'react-native';
 import { useRef, useEffect, useState } from 'react';
 import { Project } from '../data/projects';
 
@@ -70,9 +70,11 @@ export default function ProjectCard({ project, onSwipeLeft, onSwipeRight }: Prop
       onPanResponderRelease: (_, gesture) => {
         if (gesture.dx > SWIPE_THRESHOLD) {
           triggerFlash('#6CBF6C');
+          Vibration.vibrate(50); // Haptic on save
           Animated.timing(pan.x, { toValue: width * 1.5, duration: 300, useNativeDriver: false }).start(() => onSwipeRight());
         } else if (gesture.dx < -SWIPE_THRESHOLD) {
           triggerFlash('#E94560');
+          Vibration.vibrate(30); // Lighter haptic on skip
           Animated.timing(pan.x, { toValue: -width * 1.5, duration: 300, useNativeDriver: false }).start(() => onSwipeLeft());
         } else {
           Animated.spring(pan.x, { toValue: 0, useNativeDriver: false }).start();
