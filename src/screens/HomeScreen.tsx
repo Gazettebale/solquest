@@ -3,22 +3,22 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import ProjectCard from '../components/ProjectCard';
 import MiniGame from '../components/MiniGame';
-import { projects } from '../data/projects';
 import { useApp } from '../context/AppContext';
 
 export default function HomeScreen() {
   const {
     currentIndex, skipProject, saveProject, savedProjects,
     gmStreak, gmClaimedToday, claimGM, walletAddress, connectWallet,
-    xp, resetCards,
+    xp, resetCards, shuffledProjects,
   } = useApp();
 
   const [showGmModal, setShowGmModal] = useState(false);
   const [gmLoading, setGmLoading] = useState(false);
   const [gmResult, setGmResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  const currentProject = projects[currentIndex];
-  const nextProject = projects[currentIndex + 1];
+  // Use shuffled projects instead of static import
+  const currentProject = shuffledProjects[currentIndex];
+  const nextProject = shuffledProjects[currentIndex + 1];
 
   const level = Math.floor(xp / 800) + 1;
 
@@ -60,7 +60,7 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.subBar}>
-        <Text style={styles.counter}>{Math.min(currentIndex + 1, projects.length)}/{projects.length} projects</Text>
+        <Text style={styles.counter}>{Math.min(currentIndex + 1, shuffledProjects.length)}/{shuffledProjects.length} projects</Text>
         <Text style={styles.levelText}>Lvl {level} · {xp} XP</Text>
         <Text style={styles.savedText}>{savedProjects.length} saved</Text>
       </View>
@@ -217,8 +217,6 @@ const styles = StyleSheet.create({
   },
   resetText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   bottomPadding: { height: 100 },
-
-  // GM Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: '#000000CC',

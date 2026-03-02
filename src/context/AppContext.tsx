@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Project } from '../data/projects';
 import { transact, Web3MobileWallet } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js';
@@ -16,7 +16,6 @@ const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xW
 // 5 SKR (6 decimals)
 const GM_COST = 5_000_000;
 
-// Helper: decode wallet address (handles base64 from Phantom/Solflare on Seeker)
 function decodeWalletAddress(raw: any): PublicKey {
   if (typeof raw === 'string' && (raw.includes('+') || raw.includes('/') || raw.includes('='))) {
     const bytes = Uint8Array.from(Buffer.from(raw, 'base64'));
@@ -28,45 +27,36 @@ function decodeWalletAddress(raw: any): PublicKey {
   }
 }
 
-// Helper: fetch blockhash via manual fetch (works reliably on mobile)
 async function fetchBlockhash(): Promise<string> {
   const response = await fetch(RPC_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
+      jsonrpc: '2.0', id: 1,
       method: 'getLatestBlockhash',
       params: [{ commitment: 'confirmed' }],
     }),
   });
   const json = await response.json();
-  console.log('BLOCKHASH OK:', json.result.value.blockhash);
   return json.result.value.blockhash;
 }
 
-// Helper: send raw transaction via manual fetch
 async function sendTransaction(serializedTx: Uint8Array): Promise<string> {
   const base64Tx = Buffer.from(serializedTx).toString('base64');
   const response = await fetch(RPC_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
+      jsonrpc: '2.0', id: 1,
       method: 'sendTransaction',
       params: [base64Tx, { encoding: 'base64', preflightCommitment: 'confirmed' }],
     }),
   });
   const json = await response.json();
-  if (json.error) {
-    throw new Error(json.error.message);
-  }
-  console.log('TX SIGNATURE:', json.result);
+  if (json.error) throw new Error(json.error.message);
   return json.result;
 }
 
-// Derive Associated Token Address
 function getATA(mint: PublicKey, owner: PublicKey): PublicKey {
   const [address] = PublicKey.findProgramAddressSync(
     [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
@@ -75,18 +65,11 @@ function getATA(mint: PublicKey, owner: PublicKey): PublicKey {
   return address;
 }
 
-// Build SPL Transfer instruction manually (no BigInt)
-function buildSplTransfer(
-  source: PublicKey,
-  destination: PublicKey,
-  owner: PublicKey,
-  amount: number,
-): TransactionInstruction {
+function buildSplTransfer(source: PublicKey, destination: PublicKey, owner: PublicKey, amount: number): TransactionInstruction {
   const data = Buffer.alloc(9);
   data.writeUInt8(3, 0);
   data.writeUInt32LE(amount & 0xFFFFFFFF, 1);
   data.writeUInt32LE(Math.floor(amount / 0x100000000) & 0xFFFFFFFF, 5);
-
   return new TransactionInstruction({
     keys: [
       { pubkey: source, isSigner: false, isWritable: true },
@@ -96,6 +79,16 @@ function buildSplTransfer(
     programId: TOKEN_PROGRAM_ID,
     data,
   });
+}
+
+// Shuffle array (Fisher-Yates)
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 }
 
 interface AppContextType {
@@ -119,16 +112,23 @@ interface AppContextType {
   todayGameBest: number;
   updateGameScore: (score: number) => void;
   totalProjects: number;
-  // Quest tracking — manual (honor system, on-chain verification coming post-hackathon)
+  // Quest tracking — manual
   todaySwapDone: boolean;
   todayStakeDone: boolean;
   weekSwapDays: number;
   weekStakeDays: number;
   weekStakeTotal: number;
   solStaked: boolean;
+  explorerDone: boolean;
   claimSwap: () => void;
   claimStake: (amount: number) => void;
   claimSolStake: () => void;
+  claimExplorer: () => void;
+  // Shuffled projects
+  shuffledProjects: Project[];
+  // Quest XP tracking
+  claimedQuestXP: Record<string, boolean>;
+  claimQuestXP: (questId: string, amount: number) => void;
 }
 
 const AppContext = createContext<AppContextType>({} as AppContextType);
@@ -150,13 +150,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [todayGameBest, setTodayGameBest] = useState(0);
   const [lastActivityDate, setLastActivityDate] = useState<string | null>(null);
 
-  // Quest tracking — manual (swap/stake)
+  // Quest tracking — manual
   const [todaySwapDone, setTodaySwapDone] = useState(false);
   const [todayStakeDone, setTodayStakeDone] = useState(false);
   const [weekSwapDays, setWeekSwapDays] = useState(0);
   const [weekStakeDays, setWeekStakeDays] = useState(0);
   const [weekStakeTotal, setWeekStakeTotal] = useState(0);
   const [solStaked, setSolStaked] = useState(false);
+  const [explorerDone, setExplorerDone] = useState(false);
+
+  // Shuffled projects list (Phantom first, rest shuffled)
+  const [shuffledProjects, setShuffledProjects] = useState<Project[]>([]);
+
+  // Track which quest XP has been claimed (prevent double-counting)
+  const [claimedQuestXP, setClaimedQuestXP] = useState<Record<string, boolean>>({});
 
   const gmClaimedToday = lastGmDate === getTodayKey();
 
@@ -170,6 +177,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTodaySwapDone(false);
       setTodayStakeDone(false);
       setLastActivityDate(today);
+      // Reset daily quest XP claims
+      setClaimedQuestXP(prev => {
+        const newClaims: Record<string, boolean> = {};
+        // Keep weekly and special claims, reset daily
+        Object.keys(prev).forEach(key => {
+          if (!key.startsWith('d')) newClaims[key] = prev[key];
+        });
+        return newClaims;
+      });
       AsyncStorage.setItem('lastActivityDate', today);
       AsyncStorage.setItem('todaySwipes', '0');
       AsyncStorage.setItem('todaySaves', '0');
@@ -199,6 +215,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const weekStakeData = await AsyncStorage.getItem('weekStakeDays');
         const weekStakeTotalData = await AsyncStorage.getItem('weekStakeTotal');
         const solStakedData = await AsyncStorage.getItem('solStaked');
+        const explorerData = await AsyncStorage.getItem('explorerDone');
+        const shuffleData = await AsyncStorage.getItem('shuffledProjectIds');
+        const claimedXPData = await AsyncStorage.getItem('claimedQuestXP');
 
         if (savedData) setSavedProjects(JSON.parse(savedData));
         if (indexData) setCurrentIndex(JSON.parse(indexData));
@@ -217,6 +236,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (weekStakeData) setWeekStakeDays(JSON.parse(weekStakeData));
         if (weekStakeTotalData) setWeekStakeTotal(JSON.parse(weekStakeTotalData));
         if (solStakedData) setSolStaked(JSON.parse(solStakedData));
+        if (explorerData) setExplorerDone(JSON.parse(explorerData));
+        if (claimedXPData) setClaimedQuestXP(JSON.parse(claimedXPData));
+
+        // Load shuffled project order
+        if (shuffleData) {
+          const { projects: allProjects } = require('../data/projects');
+          const ids: string[] = JSON.parse(shuffleData);
+          const ordered = ids.map(id => allProjects.find((p: Project) => p.id === id)).filter(Boolean);
+          if (ordered.length === allProjects.length) {
+            setShuffledProjects(ordered);
+          } else {
+            // Fallback: reshuffle
+            const phantom = allProjects[0];
+            const rest = shuffleArray(allProjects.slice(1));
+            const newOrder = [phantom, ...rest];
+            setShuffledProjects(newOrder);
+            AsyncStorage.setItem('shuffledProjectIds', JSON.stringify(newOrder.map((p: Project) => p.id)));
+          }
+        } else {
+          // First launch: shuffle
+          const { projects: allProjects } = require('../data/projects');
+          const phantom = allProjects[0];
+          const rest = shuffleArray(allProjects.slice(1));
+          const newOrder = [phantom, ...rest];
+          setShuffledProjects(newOrder);
+          AsyncStorage.setItem('shuffledProjectIds', JSON.stringify(newOrder.map((p: Project) => p.id)));
+        }
       } catch (e) {
         console.log('Error loading data', e);
       }
@@ -225,6 +271,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     loadData();
   }, []);
 
+  // Persist state
   useEffect(() => { if (loaded) AsyncStorage.setItem('savedProjects', JSON.stringify(savedProjects)); }, [savedProjects, loaded]);
   useEffect(() => { if (loaded) AsyncStorage.setItem('currentIndex', JSON.stringify(currentIndex)); }, [currentIndex, loaded]);
   useEffect(() => { if (loaded) AsyncStorage.setItem('xp', JSON.stringify(xp)); }, [xp, loaded]);
@@ -237,6 +284,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { if (loaded) AsyncStorage.setItem('weekStakeDays', JSON.stringify(weekStakeDays)); }, [weekStakeDays, loaded]);
   useEffect(() => { if (loaded) AsyncStorage.setItem('weekStakeTotal', JSON.stringify(weekStakeTotal)); }, [weekStakeTotal, loaded]);
   useEffect(() => { if (loaded) AsyncStorage.setItem('solStaked', JSON.stringify(solStaked)); }, [solStaked, loaded]);
+  useEffect(() => { if (loaded) AsyncStorage.setItem('explorerDone', JSON.stringify(explorerDone)); }, [explorerDone, loaded]);
+  useEffect(() => { if (loaded) AsyncStorage.setItem('claimedQuestXP', JSON.stringify(claimedQuestXP)); }, [claimedQuestXP, loaded]);
 
   const saveProject = (project: Project) => {
     setSavedProjects(prev => [...prev, project]);
@@ -255,6 +304,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const resetCards = () => {
     setCurrentIndex(0);
     setSavedProjects([]);
+    // Reshuffle: keep Phantom first, shuffle the rest
+    const { projects: allProjects } = require('../data/projects');
+    const phantom = allProjects[0];
+    const rest = shuffleArray(allProjects.slice(1));
+    const newOrder = [phantom, ...rest];
+    setShuffledProjects(newOrder);
+    AsyncStorage.setItem('shuffledProjectIds', JSON.stringify(newOrder.map((p: Project) => p.id)));
   };
 
   const updateGameScore = (score: number) => {
@@ -262,7 +318,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (score > gameHighScore) setGameHighScore(score);
   };
 
-  // Manual quest claims (honor system — on-chain verification coming post-hackathon)
+  // Claim quest XP (only once per quest per period)
+  const claimQuestXP = (questId: string, amount: number) => {
+    if (!claimedQuestXP[questId]) {
+      setXp(prev => prev + amount);
+      setClaimedQuestXP(prev => {
+        const updated = { ...prev, [questId]: true };
+        AsyncStorage.setItem('claimedQuestXP', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
+  // Manual quest claims
   const claimSwap = () => {
     if (!todaySwapDone) {
       setTodaySwapDone(true);
@@ -283,6 +351,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const claimSolStake = () => {
     setSolStaked(true);
     AsyncStorage.setItem('solStaked', 'true');
+  };
+
+  const claimExplorer = () => {
+    setExplorerDone(true);
+    AsyncStorage.setItem('explorerDone', 'true');
   };
 
   const connectWallet = async () => {
@@ -307,41 +380,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     AsyncStorage.removeItem('walletAddress');
   };
 
-  // GM Streak — send 5 SKR to treasury
   const claimGM = async (): Promise<{ success: boolean; message: string }> => {
     console.log('=== CLAIM GM START ===');
-    console.log('walletAddress:', walletAddress);
-
-    if (!walletAddress) {
-      return { success: false, message: 'Connect your wallet first!' };
-    }
-    if (gmClaimedToday) {
-      return { success: false, message: 'GM already claimed today! Come back tomorrow.' };
-    }
+    if (!walletAddress) return { success: false, message: 'Connect your wallet first!' };
+    if (gmClaimedToday) return { success: false, message: 'GM already claimed today! Come back tomorrow.' };
 
     try {
       const userPubkey = new PublicKey(walletAddress);
       const userTokenAccount = getATA(SKR_MINT, userPubkey);
       const treasuryTokenAccount = getATA(SKR_MINT, TREASURY);
-
-      console.log('Fetching blockhash...');
       const blockhash = await fetchBlockhash();
 
       const tx = new Transaction({
         recentBlockhash: blockhash,
         feePayer: userPubkey,
-      }).add(
-        buildSplTransfer(userTokenAccount, treasuryTokenAccount, userPubkey, GM_COST)
-      );
+      }).add(buildSplTransfer(userTokenAccount, treasuryTokenAccount, userPubkey, GM_COST));
 
-      console.log('Opening wallet for signing...');
       const signedTx = await transact(async (wallet: Web3MobileWallet) => {
         await wallet.authorize({ chain: 'solana:mainnet', identity: APP_IDENTITY });
         const signedTxs = await wallet.signTransactions({ transactions: [tx] });
         return signedTxs[0];
       });
 
-      console.log('Sending transaction...');
       const sig = await sendTransaction(signedTx.serialize());
       console.log('GM SUCCESS! Signature:', sig);
 
@@ -375,9 +435,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       gmStreak, xp, addXP, walletAddress, connectWallet,
       disconnectWallet, claimGM, gmClaimedToday, resetCards,
       todaySwipes, todaySaves, gameHighScore, todayGameBest,
-      updateGameScore, totalProjects: 35,
+      updateGameScore, totalProjects: shuffledProjects.length || 35,
       todaySwapDone, todayStakeDone, weekSwapDays, weekStakeDays,
-      weekStakeTotal, solStaked, claimSwap, claimStake, claimSolStake,
+      weekStakeTotal, solStaked, explorerDone, claimSwap, claimStake,
+      claimSolStake, claimExplorer, shuffledProjects,
+      claimedQuestXP, claimQuestXP,
     }}>
       {children}
     </AppContext.Provider>

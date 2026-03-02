@@ -1,7 +1,15 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Modal, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Modal, Image, Alert } from 'react-native';
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Project } from '../data/projects';
+
+// Extract Android package name from dApp Store link
+// e.g. "solanadappstore://details?id=app.phantom" => "app.phantom"
+function getPackageName(dappStoreLink: string | null): string | null {
+  if (!dappStoreLink) return null;
+  const match = dappStoreLink.match(/id=([^&]+)/);
+  return match ? match[1] : null;
+}
 
 export default function SavedScreen() {
   const { savedProjects } = useApp();
@@ -10,6 +18,28 @@ export default function SavedScreen() {
 
   const categories = ['All', ...new Set(savedProjects.map(p => p.category))];
   const filtered = filter === 'All' ? savedProjects : savedProjects.filter(p => p.category === filter);
+
+  // Try to open the app directly, fallback to dApp Store, then website
+  const openApp = (project: Project) => {
+  const packageName = getPackageName(project.dappStoreLink);
+
+  if (packageName) {
+    Linking.openURL(`android-app://${packageName}`);
+  } else {
+    Linking.openURL(project.link);
+  }
+};
+
+  // Leave a Review always opens the dApp Store page
+  const openReview = (project: Project) => {
+    if (project.dappStoreLink) {
+      Linking.openURL(project.dappStoreLink).catch(() => {
+        Linking.openURL(project.link);
+      });
+    } else {
+      Linking.openURL(project.link);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -153,19 +183,19 @@ export default function SavedScreen() {
                 <View style={styles.modalActions}>
                   <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: selectedProject.color + '22', borderColor: selectedProject.color }]}
-                    onPress={() => Linking.openURL(selectedProject.dappStoreLink || selectedProject.link)}
+                    onPress={() => openApp(selectedProject)}
                   >
                     <Text style={[styles.actionBtnText, { color: selectedProject.color }]}>
-                      {selectedProject.isSeeker ? 'Open App' : 'Visit Website'}
+                      {selectedProject.isSeeker ? '🚀 Open App' : '🌐 Visit Website'}
                     </Text>
                   </TouchableOpacity>
 
                   {selectedProject.isSeeker && (
                     <TouchableOpacity
                       style={styles.reviewBtn}
-                      onPress={() => Linking.openURL(selectedProject.dappStoreLink || selectedProject.link)}
+                      onPress={() => openReview(selectedProject)}
                     >
-                      <Text style={styles.reviewBtnText}>Leave a Review</Text>
+                      <Text style={styles.reviewBtnText}>⭐ Leave a Review</Text>
                     </TouchableOpacity>
                   )}
                 </View>
