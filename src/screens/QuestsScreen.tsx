@@ -38,7 +38,7 @@ const WEEKLY_QUESTS: QuestDef[] = [
 const SPECIAL_QUESTS: QuestDef[] = [
   { id: 's1', title: 'Connect Wallet', description: 'Link your Solana wallet to SolQuest', xp: 100, icon: '🔗', type: 'special' },
   { id: 's2', title: 'Explorer', description: 'Review every project on the dApp Store', xp: 500, icon: '🏆', type: 'special', claimable: true },
-  { id: 's3', title: 'Rate SolQuest', description: 'Leave a review on the dApp Store', xp: 300, icon: '⭐', type: 'special' },
+  { id: 's3', title: 'Star on GitHub', description: 'Star the SolQuest repo on GitHub', xp: 300, icon: '⭐', type: 'special', claimable: true },
   { id: 's4', title: 'SOL Validator OG', description: 'Stake 2+ SOL on Solana Mobile validator', xp: 1500, icon: '🏛️', type: 'special', claimable: true },
 ];
 
@@ -59,14 +59,6 @@ export default function QuestsScreen() {
   const [stakeAmount, setStakeAmount] = useState('');
   const { showToast } = useToast();
 
-  // Count how many days the user completed Swipe Session (5+ swipes)
-  // For now we track via swipeDaysCount in weekly context
-  // Simple approach: if today's swipes >= 5, that counts as 1 day
-  // We'll use savedProjects.length >= 15 as proxy for "7 days of 5 swipes"
-  // But the real fix: track swipeDays separately (already in weekSwapDays pattern)
-  // For the hackathon, Collector = todaySwipes completed 7 times = saved >= 35 swipes total
-  // Simplest accurate check: gmStreak can serve as proxy since active users do both
-
   const getQuestStatus = (quest: QuestDef): { completed: boolean; progress: string } => {
     switch (quest.id) {
       // Daily — auto
@@ -79,10 +71,7 @@ export default function QuestsScreen() {
       // Weekly
       case 'w1': return { completed: gmStreak >= 7, progress: `${Math.min(gmStreak, 7)}/7 days` };
       case 'w2': {
-        // Collector: requires completing Swipe Session (5 swipes) for 7 days
-        // We approximate using gmStreak as a proxy for daily activity streak
-        // In a full version, we'd track swipeDays separately
-        const swipeDays = Math.min(gmStreak, 7); // Users who GM daily also swipe daily
+        const swipeDays = Math.min(gmStreak, 7);
         return { completed: swipeDays >= 7 && todaySwipes >= 5, progress: `${swipeDays}/7 days` };
       }
       case 'w3': return { completed: gameHighScore >= 200, progress: gameHighScore >= 200 ? 'Done!' : `Best: ${gameHighScore}` };
@@ -92,7 +81,7 @@ export default function QuestsScreen() {
       // Special
       case 's1': return { completed: !!walletAddress, progress: walletAddress ? 'Connected!' : 'Not connected' };
       case 's2': return { completed: explorerDone, progress: explorerDone ? 'Done!' : 'Tap to claim' };
-      case 's3': return { completed: false, progress: 'Coming soon' };
+      case 's3': return { completed: claimedQuestXP['s3'] ?? false, progress: claimedQuestXP['s3'] ? 'Done!' : 'Tap to claim' };
       case 's4': return { completed: solStaked, progress: solStaked ? 'Done!' : 'Tap to claim' };
       default: return { completed: false, progress: '' };
     }
@@ -130,8 +119,16 @@ export default function QuestsScreen() {
     const { completed } = getQuestStatus(quest);
     if (completed) return;
 
-    if (quest.id === 's3') {
-      Alert.alert('⭐ Rate SolQuest', 'Coming soon on the Solana dApp Store! Stay tuned.', [{ text: 'OK' }]);
+    if (quest.id === 's3' && !claimedQuestXP['s3']) {
+      Alert.alert(
+        '⭐ Star on GitHub',
+        'Star the SolQuest repo on GitHub to support the project!\n\nDid you leave a star?',
+        [
+          { text: 'Open GitHub', onPress: () => Linking.openURL('https://github.com/Gazettebale/solquest').catch(() => {}) },
+          { text: 'Yes, I starred it!', onPress: () => claimQuestXP('s3', 300) },
+          { text: 'Cancel', style: 'cancel' },
+        ]
+      );
       return;
     }
 

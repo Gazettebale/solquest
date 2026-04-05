@@ -39,13 +39,7 @@ export default function MiniGame() {
     }
   }, [gameHighScore]);
 
-  const leaderboard = [
-    { name: 'SolWhale', score: 142 },
-    { name: 'DegenKing', score: 98 },
-    { name: 'NFTHunter', score: 76 },
-    { name: 'You', score: highScore },
-    { name: 'AirdropFan', score: 45 },
-  ].sort((a, b) => b.score - a.score);
+  const leaderboard = [{ name: 'You', score: highScore }];
 
   const stop = useCallback(() => {
     isPlayingRef.current = false;
@@ -164,14 +158,15 @@ export default function MiniGame() {
       </View>
 
       <View style={styles.leaderboard}>
-        <Text style={styles.lbTitle}>Leaderboard</Text>
+        <Text style={styles.lbTitle}>Your Best Score</Text>
         {leaderboard.map((entry, i) => (
-          <View key={i} style={[styles.lbRow, entry.name === 'You' && styles.lbRowYou]}>
-            <Text style={[styles.lbRank, entry.name === 'You' && styles.lbYou]}>{i + 1}.</Text>
-            <Text style={[styles.lbName, entry.name === 'You' && styles.lbYou]}>{entry.name}</Text>
-            <Text style={[styles.lbScore, entry.name === 'You' && styles.lbYou]}>{entry.score}</Text>
+          <View key={i} style={[styles.lbRow, styles.lbRowYou]}>
+            <Text style={[styles.lbRank, styles.lbYou]}>{i + 1}.</Text>
+            <Text style={[styles.lbName, styles.lbYou]}>{entry.name}</Text>
+            <Text style={[styles.lbScore, styles.lbYou]}>{entry.score}</Text>
           </View>
         ))}
+        <Text style={styles.lbComingSoon}>Global leaderboard — coming soon</Text>
       </View>
     </View>
   );
@@ -244,4 +239,5 @@ const styles = StyleSheet.create({
   lbName: { color: '#888', fontSize: 12, flex: 1 },
   lbScore: { color: '#888', fontSize: 12 },
   lbYou: { color: '#9945FF', fontWeight: 'bold' },
+  lbComingSoon: { color: '#444', fontSize: 11, marginTop: 10, textAlign: 'center' },
 });

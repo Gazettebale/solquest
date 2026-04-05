@@ -1,102 +1,137 @@
-# SolQuest 🧭
+# SolQuest
 
 **Discover. Explore. Earn.**
 
-SolQuest is a gamified discovery app for the Solana ecosystem, built for the **Solana Seeker** device. Swipe through curated Solana dApps, complete daily quests, earn XP, and engage with the Solana blockchain — all from your mobile.
+A gamified mobile app for exploring the Solana ecosystem — swipe through curated dApps, complete daily quests, earn XP, and interact with the blockchain on-chain.
 
-Built for the **MONOLITH Hackathon** 🏗️
+> Built for the **MONOLITH Hackathon** (Solana Seeker) — work in progress, not fully complete. This is a personal project I'm continuing to build as I learn mobile + web3 dev.
+
+![React Native](https://img.shields.io/badge/React_Native-0.81-61DAFB?logo=react&logoColor=white)
+![Expo](https://img.shields.io/badge/Expo-SDK_54-000020?logo=expo&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
+![Solana](https://img.shields.io/badge/Solana-Mainnet-9945FF?logo=solana&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+---
+
+## Screenshots
+
+> *Screenshots coming soon — the app runs on Solana Seeker (Android)*
+
+---
 
 ## Features
 
-### 🧭 Swipe Discovery
-Browse 35+ curated Solana projects with a Tinder-style card interface. Save projects you like, skip the rest. Each project includes category tags, difficulty level, and direct links.
+### Swipe Discovery
+Browse 35+ curated Solana dApps with a Tinder-style card interface. Filter by category (DeFi, Trading, Games, NFT & Social, Lifestyle), save projects you like, skip the rest.
 
-### ☀️ GM Streak (On-Chain)
-Say "GM" to Solana every day by sending 5 SKR tokens to the treasury. Maintain daily streaks for escalating XP bonuses. Fully on-chain via SPL token transfer.
+### GM Streak (On-Chain)
+Say "GM" to Solana every day by sending 5 SKR tokens to a treasury address. Fully on-chain via SPL token transfer through Mobile Wallet Adapter. Maintain streaks for escalating XP bonuses.
 
-### ⚔️ Quest System
-Complete daily, weekly, and special quests to earn XP and level up:
+### Quest System
+Daily, weekly, and special quests with auto-detection where possible:
+- **Daily**: GM check-in, swipe 5 projects, score 30+ in Solana Runner, swap, stake
+- **Weekly**: 7-day GM streak, collector, high scorer, swap/stake streaks, stake 140+ SKR
+- **Special**: connect wallet, explore all projects, star on GitHub, stake 2 SOL on validator
 
-- **Daily Quests**: GM Check-in, Swipe 5 projects, Score 30+ in Solana Runner, Daily Swap, Daily SKR Stake
-- **Weekly Quests**: 7-Day GM Streak, Save 15 projects, Score 200+ in Runner, 7-day Swap/Stake streaks, Stake 140+ SKR
-- **Special Quests**: Connect Wallet, Review all projects, Rate on dApp Store, Stake 2 SOL on validator
+### Solana Runner
+Built-in endless runner mini-game with jump, double-jump, and slam mechanics. 12 unlockable characters.
 
-Quests auto-detect completion when possible (swipes, game scores, wallet connection). Swap and stake quests use an honor system for now.
+### Profile & Achievements
+12 achievement badges (Common → Mythic), level progression (800 XP/level), and discovery stats by category.
 
-### 🏃 Solana Runner
-Built-in mini-game with jump, double-jump, and slam mechanics. Compete against a leaderboard and complete game-related quests.
-
-### 👤 Profile & Achievements
-Track your discovery progress, categories explored, and unlock 12 achievements from Common to Mythic rarity.
+---
 
 ## Tech Stack
 
-- **React Native** with Expo (SDK 54)
-- **TypeScript**
-- **Solana Mobile Wallet Adapter** (Phantom, Solflare, Backpack)
-- **SPL Token** transactions (manual instruction building, no BigInt dependency)
-- **Helius RPC** for reliable mainnet connectivity
-- **AsyncStorage** for local state persistence
+| | |
+|---|---|
+| **Framework** | React Native 0.81 + Expo SDK 54 |
+| **Language** | TypeScript (strict) |
+| **Blockchain** | Solana Mainnet via Helius RPC |
+| **Wallet** | Mobile Wallet Adapter (Phantom, Solflare, Backpack) |
+| **Tokens** | SPL Token — manual instruction building |
+| **Storage** | AsyncStorage |
+| **Navigation** | React Navigation v7 |
 
-## Architecture Highlights
-
-- **Base64 wallet address decoding**: Handles Phantom/Solflare returning addresses in base64 instead of base58 on Seeker devices
-- **Pre-transact blockhash fetching**: Network calls are made before opening the wallet interface to avoid mobile networking issues during wallet sessions
-- **Manual fetch for RPC**: Uses raw `fetch()` instead of `Connection` class for reliable mobile RPC communication
-- **Manual SPL transfer instructions**: Built without `@solana/spl-token` to avoid Buffer/BigInt polyfill issues in React Native
+---
 
 ## Getting Started
 
 ```bash
-# Install dependencies
+# 1. Clone and install
+git clone https://github.com/Gazettebale/solquest.git
+cd solquest
 npm install
 
-# Start Expo dev server
+# 2. Set up environment
+cp .env.example .env
+# Edit .env and add your Helius API key (https://dev.helius.xyz/)
+
+# 3. Start dev server
 npx expo start --clear
 
-# For Seeker device (requires dev build)
+# 4. Build for Seeker device (requires EAS)
 eas build --profile development --platform android
 ```
+
+> The app is designed for the **Solana Seeker** device. Mobile Wallet Adapter won't work on web or standard Android emulator without a compatible wallet installed.
+
+---
+
+## Architecture Notes
+
+A few non-obvious implementation details:
+
+- **Base64 wallet address decoding** — Phantom/Solflare on Seeker return addresses in base64 instead of base58, requiring manual decoding
+- **Pre-transact blockhash fetching** — RPC calls happen before opening the wallet modal to avoid networking issues during MWA sessions
+- **Raw `fetch()` for RPC** — More reliable than using `Connection` class on React Native
+- **Manual SPL transfer instructions** — Built without `@solana/spl-token` to avoid Buffer/BigInt polyfill issues in React Native
+
+---
 
 ## Project Structure
 
 ```
 src/
-├── context/
-│   └── AppContext.tsx      # Global state, wallet, GM streak, quest tracking
+├── context/AppContext.tsx      # Global state, wallet, GM streak, quests
 ├── components/
-│   ├── ProjectCard.tsx     # Swipeable project card
-│   └── MiniGame.tsx        # Solana Runner game
+│   ├── ProjectCard.tsx         # Swipeable card with animations
+│   ├── MiniGame.tsx            # Solana Runner game
+│   └── QuestToast.tsx          # Toast notifications
 ├── screens/
-│   ├── HomeScreen.tsx      # Discovery feed + GM modal
-│   ├── QuestsScreen.tsx    # Quest system with auto-detection
-│   ├── SavedScreen.tsx     # Saved projects list
-│   └── ProfileScreen.tsx   # Profile, stats, achievements
-├── data/
-│   └── projects.ts         # Curated Solana projects database
-└── navigation/
-    └── ...
+│   ├── HomeScreen.tsx          # Discovery feed + GM modal
+│   ├── QuestsScreen.tsx        # Quest system
+│   ├── SavedScreen.tsx         # Saved projects
+│   ├── ProfileScreen.tsx       # Profile + achievements
+│   └── OnboardingScreen.tsx    # 3-page onboarding
+└── data/projects.ts            # 35 curated Solana projects
 ```
-
-## Roadmap (Post-Hackathon)
-
-- [ ] **On-chain quest verification**: Replace honor system with blockchain transaction verification for swap/stake quests
-- [ ] **NFT achievement badges**: Mint achievement NFTs on completion
-- [ ] **Social features**: Friends, shared leaderboards, referral system
-- [ ] **Dynamic project feed**: Fetch projects from API instead of static data
-- [ ] **SKR token rewards**: Distribute SKR tokens for quest completion
-- [ ] **Push notifications**: Daily GM reminders and streak alerts
-
-## Token Info
-
-- **SKR Token**: `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3` (6 decimals)
-- **Treasury**: `Hboo3XYUcXQJL8TfRu48Nac28wxagUnxC8q5SdFL2dEY`
-- **GM Cost**: 5 SKR per daily check-in
-
-## License
-
-MIT
 
 ---
 
-*Built with 💜 for the Solana ecosystem by [@gazettebale](https://github.com/gazettebale)*
+## Roadmap
+
+- [ ] On-chain quest verification (replace honor system for swap/stake)
+- [ ] NFT achievement badges
+- [ ] Social features (friends, shared leaderboards, referrals)
+- [ ] Dynamic project feed (API instead of static data)
+- [ ] SKR token rewards distribution
+- [ ] Push notifications (daily GM reminders, streak alerts)
+- [ ] Global game leaderboard
+
+---
+
+## Token Info
+
+| | |
+|---|---|
+| **SKR Mint** | `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3` |
+| **Treasury** | `Hboo3XYUcXQJL8TfRu48Nac28wxagUnxC8q5SdFL2dEY` |
+| **GM Cost** | 5 SKR per daily check-in |
+
+---
+
+## License
+
+MIT — [@gazettebale](https://github.com/gazettebale)
