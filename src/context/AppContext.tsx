@@ -5,7 +5,7 @@ import { transact, Web3MobileWallet } from '@solana-mobile/mobile-wallet-adapter
 import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 
 const APP_IDENTITY = { name: 'SolQuest', uri: 'https://solquest.app' };
-const RPC_URL = 'https://mainnet.helius-rpc.com/?api-key=979c0654-c79e-4e97-8f8c-a5b6bd03cdde';
+const RPC_URL = `https://mainnet.helius-rpc.com/?api-key=${process.env.EXPO_PUBLIC_HELIUS_API_KEY}`;
 
 // SKR Token
 const SKR_MINT = new PublicKey('SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3');
